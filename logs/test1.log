@@ -1,0 +1,12 @@
+Namespace(batch_size=32, corruption='uniform', dataset='modelnet40', dropout=0.5, emb_dims=512, epochs=2000, eval=True, exp_name='test1', lr=0.001, mode='no_bg', model_path='checkpoints/model_cls.pth', momentum=0.9, num_points=1024, radius=0.005, seed=42, severity=1, test_batch_size=16, use_sgd=True)
+Using GPU : 0 from 1 devices
+Namespace(batch_size=32, corruption='uniform', dataset='modelnet40', dropout=0.5, emb_dims=512, epochs=2000, eval=True, exp_name='test1', lr=0.001, mode='no_bg', model_path='checkpoints/model_cls.pth', momentum=0.9, num_points=1024, radius=0.005, seed=42, severity=1, test_batch_size=16, use_sgd=True)
+Using GPU : 0 from 1 devices
+Namespace(batch_size=32, corruption='uniform', dataset='modelnet40', dropout=0.5, emb_dims=512, epochs=2000, eval=True, exp_name='test1', lr=0.001, mode='no_bg', model_path='checkpoints/model_cls.pth', momentum=0.9, num_points=1024, radius=0.005, seed=42, severity=1, test_batch_size=16, use_sgd=True)
+Using GPU : 0 from 1 devices
+Test :: test acc: 0.936, test avg acc: 0.906
+cost time: 22.048339 s
+Namespace(batch_size=32, corruption='uniform', dataset='modelnet40', dropout=0.5, emb_dims=512, epochs=2000, eval=True, exp_name='test1', lr=0.001, mode='no_bg', model_path='checkpoints/model_cls.pth', momentum=0.9, num_points=1024, radius=0.005, seed=42, severity=1, test_batch_size=16, use_sgd=True)
+Using GPU : 0 from 1 devices
+Test :: test acc: 0.936, test avg acc: 0.906
+cost time: 22.418316 s

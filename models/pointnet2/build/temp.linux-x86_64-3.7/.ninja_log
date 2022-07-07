@@ -1,0 +1,10 @@
+# ninja log v5
+5	25971	1653403821107418000	/home/manli/flexnet/Pointnet2.ScanNet/pointnet2/build/temp.linux-x86_64-3.7/_ext_src/src/interpolate.o	9b03b55bfa9fec68
+4	26068	1653403821200422000	/home/manli/flexnet/Pointnet2.ScanNet/pointnet2/build/temp.linux-x86_64-3.7/_ext_src/src/group_points.o	98a028299e3395ae
+5	26232	1653403821347429000	/home/manli/flexnet/Pointnet2.ScanNet/pointnet2/build/temp.linux-x86_64-3.7/_ext_src/src/sampling.o	8e9f2a3d016278af
+4	26297	1653403821427428000	/home/manli/flexnet/Pointnet2.ScanNet/pointnet2/build/temp.linux-x86_64-3.7/_ext_src/src/ball_query.o	7f19cd18e4151c3
+4	30244	1653403825372417000	/home/manli/flexnet/Pointnet2.ScanNet/pointnet2/build/temp.linux-x86_64-3.7/_ext_src/src/bindings.o	635453cb9cdff325
+3	53816	1653403848938432000	/home/manli/flexnet/Pointnet2.ScanNet/pointnet2/build/temp.linux-x86_64-3.7/_ext_src/src/group_points_gpu.o	8892bfe51999109e
+6	54411	1653403849540419000	/home/manli/flexnet/Pointnet2.ScanNet/pointnet2/build/temp.linux-x86_64-3.7/_ext_src/src/ball_query_gpu.o	3127a2d4aa99c331
+6	56383	1653403851511418000	/home/manli/flexnet/Pointnet2.ScanNet/pointnet2/build/temp.linux-x86_64-3.7/_ext_src/src/interpolate_gpu.o	b1b9e7e8c58a7968
+7	57563	1653403852685421000	/home/manli/flexnet/Pointnet2.ScanNet/pointnet2/build/temp.linux-x86_64-3.7/_ext_src/src/sampling_gpu.o	aba184020562e905
