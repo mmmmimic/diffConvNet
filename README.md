@@ -1,7 +1,7 @@
 # diffConv: Analyzing Irregular Point Clouds with an Irregular View [ECCV'22]
 Standard spatial convolutions assume input data with a regular neighborhood structure. Existing methods typically generalize convolution to the irregular point cloud domain by fixing a regular "view" through e.g. a fixed neighborhood size, where the convolution kernel size remains the same for each point. However, since point clouds are not as structured as images, the fixed neighbor number gives an unfortunate inductive bias. We present a novel graph convolution named Difference Graph Convolution (diffConv), which does not rely on a regular view. diffConv operates on spatially-varying and density-dilated neighborhoods, which are further adapted by a learned masked attention mechanism. Experiments show that our model is very robust to the noise, obtaining state-of-the-art performance in 3D shape classification and scene understanding tasks, along with a faster inference speed. 
 
-[[Arxiv]](https://arxiv.org/abs/2111.14658)
+[[Arxiv]](https://arxiv.org/abs/2111.14658) NB: the arxiv is not the camera-ready version of this paper. 
 
 ## Dependencies
  - Python (tested on 3.7.11)
@@ -30,8 +30,6 @@ Follow the [official instruction](https://github.com/jiachens/ModelNet40-C), the
 
 ## 3D Scene Segmentation
 #### Toronto3D
-##### Prepare dataset 
-
 ##### Train the model with default hyperparameters
     python3 main_seg.py --exp_name=trt_seg
 
@@ -39,7 +37,7 @@ Follow the [official instruction](https://github.com/jiachens/ModelNet40-C), the
     python3 main_seg.py --exp_name=trt_seg --eval=True --model_path=checkpoints/model_seg.pth
 
 ## Citation
-Please cite this paper if you find this work helpful in your research,
+Please cite this paper if you find this work helpful to your research,
 
 	@article{lin2021diffconv,
     title={diffconv: Analyzing irregular point clouds with an irregular view},
