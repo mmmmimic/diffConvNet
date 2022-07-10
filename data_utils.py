@@ -14,8 +14,6 @@ import glob
 import h5py
 import numpy as np
 import torch
-import json
-import cv2
 from torch.utils.data import Dataset
 
 def load_data_cls(partition):
@@ -32,6 +30,16 @@ def load_data_cls(partition):
         all_label.append(label)
     all_data = np.concatenate(all_data, axis=0)
     all_label = np.concatenate(all_label, axis=0)
+    return all_data, all_label
+
+def load_data_seg(partition):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(base_dir, 'data')
+    point_dir = os.path.join(data_dir, 'Toronto_3D', partition, '*_point.npy')
+    label_dir = os.path.join(data_dir, 'Toronto_3D', partition, '*_label.npy')
+    all_data = glob.glob(point_dir)
+    all_label = glob.glob(label_dir)
+    
     return all_data, all_label
 
 def translate_pointcloud(pointcloud):
@@ -65,30 +73,32 @@ class ModelNet40(Dataset):
         if self.partition == 'train':
             pointcloud = translate_pointcloud(pointcloud)
             np.random.shuffle(pointcloud)
-        # if self.partition == 'test':
-        #     pointcloud = pointcloud[:-100, :]
-        #     noise = np.random.rand(100, 3)*2-1
-        #     pointcloud = np.concatenate((pointcloud, noise), axis=0).astype('float32')
-        #     np.random.shuffle(pointcloud)
         return pointcloud, label
 
     def __len__(self):
         return self.data.shape[0]
 
-def load_data_toronto(partition):
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATA_DIR = os.path.join(BASE_DIR, 'data')
-    data_dir = os.path.join(DATA_DIR, 'Toronto_3D', partition, '*_point.npy')
-    label_dir = os.path.join(DATA_DIR, 'Toronto_3D', partition, '*_label.npy')
-    all_data = glob.glob(data_dir)
-    all_label = glob.glob(label_dir)
-    
-    return all_data, all_label
+class ModelNet40C(Dataset):
+    def __init__(self, corruption, severity):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        data_dir = os.path.join(base_dir, 'data', 'modelnet40_c')
+        DATA_DIR = os.path.join(data_dir, 'data_' + corruption + '_' +str(severity) + '.npy')
+        LABEL_DIR = os.path.join(data_dir, 'label.npy')
+        self.data = np.load(DATA_DIR)
+        self.label = np.load(LABEL_DIR)
 
+    def __getitem__(self, item):
+        pointcloud = self.data[item]
+        label = self.label[item]
+        label = label
+        return torch.from_numpy(pointcloud), torch.from_numpy(label).long()
+
+    def __len__(self):
+        return self.data.shape[0]
 
 class Toronto3D(Dataset):
     def __init__(self, num_points=2048, partition='train'):
-        self.data, self.seg = load_data_toronto(partition)
+        self.data, self.seg = load_data_seg(partition)
         self.num_points = num_points
         self.partition = partition    
 
@@ -99,7 +109,7 @@ class Toronto3D(Dataset):
         seg = seg[:self.num_points]
         # normalize point cloud
         pointcloud = pointcloud - np.min(pointcloud, axis=0)
-        pointcloud /= 5
+        pointcloud /= 5 # normalize in 5x5 blocks
         
         if self.partition == 'train':
             indices = list(range(pointcloud.shape[0]))
@@ -114,25 +124,4 @@ class Toronto3D(Dataset):
         return pointcloud, seg
 
     def __len__(self):
-        return len(self.data)    
-    
-class ModelNet40C(Dataset):
-    def __init__(self, corruption, severity):
-        data_path='./data/modelnet40_c/'
-        DATA_DIR = os.path.join(data_path, 'data_' + corruption + '_' +str(severity) + '.npy')
-        LABEL_DIR = os.path.join(data_path, 'label.npy')
-        self.data = np.load(DATA_DIR)
-        self.label = np.load(LABEL_DIR)
-
-    def __getitem__(self, item):
-        pointcloud = self.data[item]
-        label = self.label[item]
-        label = label
-        return torch.from_numpy(pointcloud), torch.from_numpy(label).long()
-
-    def __len__(self):
-        return self.data.shape[0]
-
-if __name__ == '__main__':
-    d = Toronto3D(partition='test')
-    print(len(d))
+        return len(self.data)  

@@ -1,2 +1,1 @@
-# diffConv
-Official Implementation of diffConv: Analyzing Irregular Point Clouds with an Irregular View
+# diffConv: Analyzing Irregular Point Clouds with an Irregular View [ECCV'22]

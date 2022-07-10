@@ -1,5 +1,4 @@
 import argparse
-from hashlib import new
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -61,13 +60,13 @@ class Model(nn.Module):
         return x
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Point Cloud Part Classification')
+    parser = argparse.ArgumentParser(description='Point Cloud Classification')
     parser.add_argument('--exp_name', type=str, default='exp', metavar='N',
                         help='Name of the experiment')
     parser.add_argument('--dropout', type=float, default=0.5,
                         help='dropout rate')
     parser.add_argument('--radius', type=float, default=0.005,
-                        help='searching radius')
+                        help='search radius')
     parser.add_argument('--emb_dims', type=int, default=512, metavar='N',
                         help='Dimension of embeddings')
     args = parser.parse_args()
