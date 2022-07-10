@@ -18,6 +18,14 @@ def download_modelnet40(data_dir):
         
     print('ModelNet40 dataset has been prepared.')
 
+def download_modenet40C(data_dir):
+    '''
+    Please follow the data preparation instruction at https://github.com/jiachens/ModelNet40-C
+    Then move ./ModelNet40-C/data/modelnet40_c to ./data/modelnet40_c
+    '''
+    pass
+        
+    print('ModelNet40-C dataset has been prepared.')    
         
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Data Preparation')

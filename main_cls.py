@@ -24,7 +24,6 @@ import numpy as np
 from torch.utils.data import DataLoader
 from misc import cal_loss, IOStream
 import sklearn.metrics as metrics
-import time
 import pandas as pd
 
 torch.cuda.synchronize()
@@ -56,7 +55,6 @@ def train(args, io):
 
     best_test_acc = 0
     for epoch in range(args.epochs):
-        start_time = time.time()
         ####################
         # Train
         ####################
@@ -100,7 +98,6 @@ def train(args, io):
         test_true = []
         for data, label in test_loader:
             data, label = data.to(device), label.to(device).squeeze()
-            data = data.permute(0, 2, 1)
             batch_size = data.size()[0]
             with torch.no_grad():
                 logits = model(data)
@@ -122,15 +119,16 @@ def train(args, io):
         if test_acc >= best_test_acc:
             best_test_acc = test_acc
             torch.save(model.state_dict(), './checkpoints/%s.pth' % args.exp_name)
-        end_time = time.time()
-        epoch_time = end_time - start_time
-        print('ETA: %.2f min' % (epoch_time*(args.epochs - epoch - 1)/60))
 
 def test(args, io):
     if args.dataset == 'modelnet40':
         test_loader = DataLoader(ModelNet40(partition='test', num_points=args.num_points), num_workers=32,
                                 batch_size=args.test_batch_size, shuffle=True, drop_last=False)
         output_channels = 40
+    if args.dataset == 'modelnet40C':
+        test_loader = DataLoader(ModelNet40C(args.corruption, args.severity), num_workers=32,
+                                batch_size=args.test_batch_size, shuffle=True, drop_last=False)
+        output_channels = 40        
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -143,16 +141,12 @@ def test(args, io):
     model.load_state_dict(torch.load(args.model_path))
     model = model.eval()
     test_acc = 0.0
-    count = 0.0
     test_true = []
     test_pred = []
-    time_start = time.time()
     for data, label in test_loader:
         data, label = data.to(device), label.to(device).squeeze()
-        batch_size = data.size()[0]
         with torch.no_grad():
             logits = model(data)
-        loss = cal_loss(logits, label)
         preds = logits.max(dim=1)[1]
         test_true.append(label.cpu().numpy())
         test_pred.append(preds.detach().cpu().numpy())
@@ -162,9 +156,6 @@ def test(args, io):
     avg_per_class_acc = metrics.balanced_accuracy_score(test_true, test_pred)
     outstr = 'Test :: test acc: %.3f, test avg acc: %.3f'%(test_acc, avg_per_class_acc)
     io.cprint(outstr)
-    time_end = time.time()
-    time_str = 'cost time: %4f s'%(time_end - time_start)
-    io.cprint(time_str)
 
 if __name__ == "__main__":
     # Training settings
@@ -178,7 +169,7 @@ if __name__ == "__main__":
     parser.add_argument('--test_batch_size', type=int, default=16, metavar='batch_size',
                         help='Size of batch)')
     parser.add_argument('--epochs', type=int, default=2000, metavar='N',
-                        help='number of episode to train ')
+                        help='number of episode to train')
     parser.add_argument('--use_sgd', type=bool, default=True,
                         help='Use SGD')
     parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
@@ -186,7 +177,7 @@ if __name__ == "__main__":
     parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
                         help='SGD momentum (default: 0.9)')
     parser.add_argument('--seed', type=int, default=42, metavar='S',
-                        help='random seed (default: 1)')
+                        help='random seed (default: 42)')
     parser.add_argument('--eval', type=bool,  default=False,
                         help='evaluate the model')
     parser.add_argument('--num_points', type=int, default=1024,
@@ -198,14 +189,12 @@ if __name__ == "__main__":
     parser.add_argument('--model_path', type=str, default='', metavar='N',
                         help='Pretrained model path')
     parser.add_argument('--radius', type=float, default=0.005,
-                        help='searching radius')
+                        help='search radius')
     parser.add_argument('--corruption', type=str, default='uniform', metavar='N',
-                        help='corruption')   
+                        help='corruption of ModelNetC')   
     parser.add_argument('--severity', type=int, default=1, metavar='S',
-                        help='severity')
-    parser.add_argument('--mode', type=str, default='no_bg', metavar='N',
-                        help='Mode to use in scannet', choices=['no_bg', 'bg', 'hard', 'rst', 'rst1', 'rst2', 'rst3', 'rst4'])
-                                            
+                        help='severity of ModelNetC')
+                  
     args = parser.parse_args()
 
     io = IOStream(os.path.join('./logs', args.exp_name))

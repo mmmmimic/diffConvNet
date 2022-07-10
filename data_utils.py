@@ -19,11 +19,11 @@ import cv2
 from torch.utils.data import Dataset
 
 def load_data_cls(partition):
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATA_DIR = os.path.join(BASE_DIR, 'data')
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(base_dir, 'data')
     all_data = []
     all_label = []
-    for h5_name in glob.glob(os.path.join(DATA_DIR, 'modelnet40_ply_hdf5_2048', '*%s*.h5'%partition)):
+    for h5_name in glob.glob(os.path.join(data_dir, 'modelnet40_ply_hdf5_2048', '*%s*.h5'%partition)):
         f = h5py.File(h5_name, 'r+')
         data = f['data'][:].astype('float32')
         label = f['label'][:].astype('int64')
@@ -52,11 +52,6 @@ def rotate_pointcloud(pointcloud):
     pointcloud[:,[0,2]] = pointcloud[:,[0,2]].dot(rotation_matrix) # random rotation (x,z)
     return pointcloud
 
-def normalize_pointcloud(pc):
-    pc = pc - np.min(pc, axis=0)
-    pc /= 5
-    return pc
-
 class ModelNet40(Dataset):
     def __init__(self, num_points, partition='train'):
         self.data, self.label = load_data_cls(partition)
@@ -75,9 +70,6 @@ class ModelNet40(Dataset):
         #     noise = np.random.rand(100, 3)*2-1
         #     pointcloud = np.concatenate((pointcloud, noise), axis=0).astype('float32')
         #     np.random.shuffle(pointcloud)
-            
-        #     jitter = lambda x: (x + (np.random.rand(1024, 3)*2-1)/50).astype('float32')
-        #     pointcloud = jitter(pointcloud)
         return pointcloud, label
 
     def __len__(self):
@@ -105,7 +97,9 @@ class Toronto3D(Dataset):
         seg = np.load(self.seg[item])
         pointcloud = pointcloud[:self.num_points]
         seg = seg[:self.num_points]
-        pointcloud = normalize_pointcloud(pointcloud)
+        # normalize point cloud
+        pointcloud = pointcloud - np.min(pointcloud, axis=0)
+        pointcloud /= 5
         
         if self.partition == 'train':
             indices = list(range(pointcloud.shape[0]))
@@ -124,7 +118,7 @@ class Toronto3D(Dataset):
     
 class ModelNet40C(Dataset):
     def __init__(self, corruption, severity):
-        data_path='./data/ModelNet40-C/data/modelnet40_c/'
+        data_path='./data/modelnet40_c/'
         DATA_DIR = os.path.join(data_path, 'data_' + corruption + '_' +str(severity) + '.npy')
         LABEL_DIR = os.path.join(data_path, 'label.npy')
         self.data = np.load(DATA_DIR)
@@ -140,38 +134,5 @@ class ModelNet40C(Dataset):
         return self.data.shape[0]
 
 if __name__ == '__main__':
-    # train = ModelNet40(1024)
-    # test = ModelNet40(1024, 'test')
-    # data, label = train[0]
-    # print(data.shape)
-    # print(label.shape)
-
-    # trainval = ShapeNetPart(2048, 'trainval')
-    # test = ShapeNetPart(2048, 'test')
-    # data, label, seg = trainval[0]
-    # print(data.shape)
-    # print(label.shape)
-    # print(seg.shape)
-
-    # train = S3DIS(4096)
-    # test = S3DIS(4096, 'test')
-    # data, seg = train[0]
-    # print(data.shape)
-    # print(seg.shape)
-    
-    # co = ['uniform', 'gaussian', 'background', 
-    #       'impulse', 'upsampling', 'distortion_rbf', 
-    #       'distortion_rbf_inv', 'density', 'density_inc', 
-    #       'shear', 'rotation', 'cutout', 'distortion',  
-    #       'occlusion', 'lidar']    
-    # sev = [1,2,3,4,5]
-    # for c in co:
-    #     for s in sev:
-    #         train = ModelNet40C(c, s)
-    #         print(len(train))
     d = Toronto3D(partition='test')
     print(len(d))
-    # d = ModelNet40(1024, 'test')
-    # for i in range(len(d)):
-    #     pc, seg = d[0]
-    # print(pc.shape, seg.shape)
