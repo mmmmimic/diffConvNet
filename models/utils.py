@@ -1,7 +1,6 @@
 import torch
 import sys
 sys.path.append('./models/pointnet2')
-sys.path.append('./pointnet2')
 from .pointnet2 import pointnet2_utils
 
 def get_dist(src, dst):

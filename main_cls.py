@@ -24,7 +24,6 @@ import numpy as np
 from torch.utils.data import DataLoader
 from misc import cal_loss, IOStream
 import sklearn.metrics as metrics
-import pandas as pd
 
 torch.cuda.synchronize()
 
