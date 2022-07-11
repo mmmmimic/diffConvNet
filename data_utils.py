@@ -16,7 +16,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-def load_data_cls(partition):
+def load_data_mdn(partition):
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(base_dir, 'data')
     all_data = []
@@ -31,6 +31,21 @@ def load_data_cls(partition):
     all_data = np.concatenate(all_data, axis=0)
     all_label = np.concatenate(all_label, axis=0)
     return all_data, all_label
+
+def load_data_sonn(partition, bg):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(base_dir, 'data')
+    if bg:
+        head = 'main_split'
+    else:
+        head = 'main_split_nobg'
+    if partition == 'train':
+        partition = 'training'
+    h5_name = os.path.join(data_dir, 'h5_files', head, '%s_objectdataset.h5'%(partition))
+    f = h5py.File(h5_name, 'r+')
+    data = f['data'][:].astype('float32')
+    label = f['label'][:].astype('int64')
+    return data, label    
 
 def load_data_seg(partition):
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -62,7 +77,7 @@ def rotate_pointcloud(pointcloud):
 
 class ModelNet40(Dataset):
     def __init__(self, num_points, partition='train'):
-        self.data, self.label = load_data_cls(partition)
+        self.data, self.label = load_data_mdn(partition)
         self.num_points = num_points
         self.partition = partition        
 
@@ -72,6 +87,83 @@ class ModelNet40(Dataset):
         
         if self.partition == 'train':
             pointcloud = translate_pointcloud(pointcloud)
+            np.random.shuffle(pointcloud)
+        return pointcloud, label
+
+    def __len__(self):
+        return self.data.shape[0]
+    
+class ModelNet40Noise(Dataset):
+    def __init__(self, num_points, num_noise, partition='test'):
+        assert partition == "test",'Noise study can only be applied during evaluation'
+        self.data, self.label = load_data_mdn(partition)
+        self.num_points = num_points
+        self.partition = partition        
+        self.num_noise = num_noise
+        assert self.num_noise <= self.num_points,'number of noise points should be less than the point number'
+
+    def __getitem__(self, item):
+        pointcloud = self.data[item][:self.num_points]
+        label = self.label[item]
+        
+        pointcloud = pointcloud[:-self.num_noise, :]
+        noise = np.random.rand(self.num_noise, 3)*2-1
+        pointcloud = np.concatenate((pointcloud, noise), axis=0).astype('float32')
+        np.random.shuffle(pointcloud)
+        
+        return pointcloud, label
+
+    def __len__(self):
+        return self.data.shape[0]
+
+class ModelNet40Resplit(Dataset):
+    def __init__(self, num_points, partition='train'):
+        train_data, train_label = load_data_mdn('train')
+        test_data, test_label = load_data_mdn('test')
+        self.num_points = num_points
+        self.partition = partition   
+        all_data = np.concatenate((train_data, test_data), axis=0)  
+        all_label = np.concatenate((train_label, test_label), axis=0)    
+        indices = list(range(all_data.shape[0]))
+        np.random.shuffle(indices)
+        if partition == 'train':
+            self.data = all_data[indices[:8617], ...]
+            self.label = all_label[indices[:8617], ...]
+        elif partition == 'test':
+            self.data = all_data[indices[8617:8617+1847], ...]
+            self.label = all_label[indices[8617:8617+1847], ...]            
+        elif partition == 'vali':
+            self.data = all_data[indices[8617+1847:], ...]
+            self.label = all_label[indices[8617+1847:], ...]             
+        else:
+            raise NameError
+        
+    def __getitem__(self, item):
+        pointcloud = self.data[item][:self.num_points]
+        label = self.label[item]
+        
+        if self.partition == 'train':
+            pointcloud = translate_pointcloud(pointcloud)
+            np.random.shuffle(pointcloud)
+        return pointcloud, label
+
+    def __len__(self):
+        return self.data.shape[0]
+
+class ScanObjectNN(Dataset):
+    def __init__(self, num_points, partition='train', bg=False):
+        self.data, self.label = load_data_sonn(partition, bg)
+        self.num_points = num_points
+        self.partition = partition        
+
+    def __getitem__(self, item):
+        pointcloud = self.data[item][:self.num_points]
+        label = self.label[item]
+        
+        if self.partition == 'train':
+            pointcloud = translate_pointcloud(pointcloud)
+            pointcloud = rotate_pointcloud(pointcloud)
+            pointcloud = jitter_pointcloud(pointcloud)
             np.random.shuffle(pointcloud)
         return pointcloud, label
 
@@ -109,7 +201,7 @@ class Toronto3D(Dataset):
         seg = seg[:self.num_points]
         # normalize point cloud
         pointcloud = pointcloud - np.min(pointcloud, axis=0)
-        pointcloud /= 5 # normalize in 5x5 blocks
+        pointcloud /= 5 # normalize point cloud in 5x5 blocks
         
         if self.partition == 'train':
             indices = list(range(pointcloud.shape[0]))

@@ -7,48 +7,95 @@ Standard spatial convolutions assume input data with a regular neighborhood stru
  - Python (tested on 3.7.11)
  - PyTorch (tested on 1.9.0)
  - CUDA (tested on 11.6)
- - other packages: sklearn, h5py
- - Install [CUDA accelerated PointNet++ library](https://github.com/daveredrum/Pointnet2.ScanNet/tree/master/pointnet2) under `models/`. 
+ - other packages: sklearn, h5py, open3d
+ - Install [CUDA accelerated PointNet++ library](https://github.com/daveredrum/Pointnet2.ScanNet/tree/master/pointnet2) under `models/pointnet2`. 
 
 ## 3D Object Shape Classification
-#### ModelNet40
-##### Prepare dataset 
+### ModelNet40
+**Prepare dataset**
+
     python3 data_prep.py --dataset=modelnet40
 
-##### Train the model with default hyperparameters
+**Train the model with default hyperparameters**
+
     python3 main_cls.py --exp_name=md40_cls --dataset=modelnet40
 
-##### Evaluate with our pretrained model
+There are many hyperparameters to customize, call
+
+    python3 main_cls.py --help
+
+for details. 
+
+**Evaluate with our pretrained model**
+
     python3 main_cls.py --exp_name=md40_cls_eval --dataset=modelnet40 --eval=True --model_path=checkpoints/model_cls.pth
 
-#### ModelNet40-C
-##### Prepare dataset
-Follow the [official instruction](https://github.com/jiachens/ModelNet40-C), then move `ModelNet40-C/data/modelnet40_c` under the `data/` folder. 
+`--model_path` can be any trained parameters. 
 
-##### Evaluate with our pretrained model
-    bash eval_modelnet40C.sh
+**Evaluate model performance under noise**
+
+    . eval_modelnet40noise.sh
+
+**Train model on resplited ModelNet40**
+
+    python3 main_cls.py --exp_name=md40_resplit --dataset=modelnet40resplit
+
+Note that everytime the dataset is randomly resplitted. 
+
+**Evaluate model on resplited ModelNet40**
+
+    python3 main_cls.py --exp_name=md40_resplit --dataset=modelnet40resplit
+
+
+### ModelNet40-C
+**Prepare dataset**
+
+Follow the [official instruction](https://github.com/jiachens/ModelNet40-C), then move `ModelNet40-C/data/modelnet40_c` to `data/modelnet40_c` folder. 
+
+**Evaluate with our pretrained model**
+
+    . eval_modelnet40C.sh
+
+### ScanObjectNN
+**Prepare dataset**
+
+Download the [dataset](https://hkust-vgd.github.io/scanobjectnn/) and unzip it at `data/h5_files`. 
+
+**Train the model with default hyperparameters**
+
+    python3 main_cls.py --exp_name=sonn_cls --dataset=scanobjectnn --bg=False
+
+set `--bg` to `True` to train the model on the pointcloud with backgrounds. 
 
 ## 3D Scene Segmentation
-#### Toronto3D
-##### Train the model with default hyperparameters
+### Toronto3D
+**Prepare dataset (may require torch 1.8.x)**
+
+Download the [dataset](https://github.com/WeikaiTan/Toronto-3D) and unzip it to `data/Toronto_3D`, then run    
+    
+    python3 data_prep.py --dataset=toronto3d
+
+**Train the model with default hyperparameters**
+
     python3 main_seg.py --exp_name=trt_seg
 
-##### Evaluate with our pretrained model
+**Evaluate with our pretrained model**
+
     python3 main_seg.py --exp_name=trt_seg --eval=True --model_path=checkpoints/model_seg.pth
 
 ## Citation
 Please cite this paper if you find this work helpful to your research,
 
-	@article{lin2021diffconv,
-    title={diffconv: Analyzing irregular point clouds with an irregular view},
-    author={Lin, Manxi and Feragen, Aasa},
-    journal={arXiv preprint arXiv:2111.14658},
-    year={2021}
+    @inproceedings{lin2021diffconv,
+        title={diffconv: Analyzing Irregular Point Clouds with an Irregular View},
+        author={Lin, Manxi and Feragen, Aasa},
+        booktitle={Proceedings of the European Conference on Computer Vision (ECCV)},
+        year={2022}
     }
 
 ## License
 MIT License
 
 ## Acknowledgements
-Part of this codebase is borrowed from [PointNet](https://github.com/charlesq34/pointnet), [DGCNN](https://github.com/WangYueFt/dgcnn), [CurveNet](https://github.com/tiangexiang/CurveNet), [Pointnet2.ScanNet](https://github.com/daveredrum/Pointnet2.ScanNet)
+Part of this codebase is borrowed from [PointNet](https://github.com/charlesq34/pointnet), [DGCNN](https://github.com/WangYueFt/dgcnn), [CurveNet](https://github.com/tiangexiang/CurveNet), [Pointnet2.ScanNet](https://github.com/daveredrum/Pointnet2.ScanNet). Sincere appreciation to their works! 
 

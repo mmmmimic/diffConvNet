@@ -2,9 +2,9 @@ for cor in 'uniform' 'gaussian' 'background' 'impulse' 'upsampling' 'distortion_
 
 for sev in 1 2 3 4 5; do
 
-CUDA_VISIBLE_DEVICES=1 python main_cls.py --eval=True --model_path=checkpoints/model_cls.pth --dataset=modelnet40C --exp_name=eval_modelnet40C --corruption=${cor} --severity=${sev}
+CUDA_VISIBLE_DEVICES=0 python3 main_cls.py --eval=True --model_path=checkpoints/model_cls.pth --dataset=modelnet40C --exp_name=eval_modelnet40C --corruption=${cor} --severity=${sev}
 
 done
 done
 
-python fetch_cer.py
+python3 fetch_cer.py

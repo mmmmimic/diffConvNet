@@ -18,7 +18,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from data_utils import ModelNet40, ModelNet40C
+from data_utils import ModelNet40, ModelNet40C, ModelNet40Noise, ModelNet40Resplit, ScanObjectNN
 from models.diffConv_cls import Model
 import numpy as np
 from torch.utils.data import DataLoader
@@ -34,6 +34,19 @@ def train(args, io):
         test_loader = DataLoader(ModelNet40(partition='test', num_points=args.num_points), num_workers=32,
                                 batch_size=args.test_batch_size, shuffle=True, drop_last=False)
         output_channels = 40
+    elif args.dataset == 'modelnet40resplit':
+        train_loader = DataLoader(ModelNet40Resplit(partition='train', num_points=args.num_points), num_workers=32,
+                                batch_size=args.batch_size, shuffle=True, drop_last=True)
+        test_loader = DataLoader(ModelNet40Resplit(partition='vali', num_points=args.num_points), num_workers=32,
+                                batch_size=args.test_batch_size, shuffle=True, drop_last=False)
+        output_channels = 40 
+    elif args.dataset == 'scanobjectnn':
+        train_loader = DataLoader(ScanObjectNN(partition='train', num_points=args.num_points, bg=args.bg), num_workers=32,
+                                batch_size=args.batch_size, shuffle=True, drop_last=True)
+        test_loader = DataLoader(ScanObjectNN(partition='test', num_points=args.num_points, bg=args.bg), num_workers=32,
+                                batch_size=args.test_batch_size, shuffle=True, drop_last=False)
+        output_channels = 15
+         
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     model = Model(args, output_channels)
@@ -122,12 +135,24 @@ def train(args, io):
 def test(args, io):
     if args.dataset == 'modelnet40':
         test_loader = DataLoader(ModelNet40(partition='test', num_points=args.num_points), num_workers=32,
-                                batch_size=args.test_batch_size, shuffle=True, drop_last=False)
+                                batch_size=args.test_batch_size, shuffle=False, drop_last=False)
         output_channels = 40
-    if args.dataset == 'modelnet40C':
+    elif args.dataset == 'modelnet40C':
         test_loader = DataLoader(ModelNet40C(args.corruption, args.severity), num_workers=32,
-                                batch_size=args.test_batch_size, shuffle=True, drop_last=False)
-        output_channels = 40        
+                                batch_size=args.test_batch_size, shuffle=False, drop_last=False)
+        output_channels = 40     
+    elif args.dataset == 'modelnet40noise':
+        test_loader = DataLoader(ModelNet40Noise(args.num_points, args.num_noise), num_workers=32,
+                                batch_size=args.test_batch_size, shuffle=False, drop_last=False)
+        output_channels = 40    
+    elif args.dataset == 'modelnet40resplit':
+        test_loader = DataLoader(ModelNet40Resplit(partition='test', num_points=args.num_points), num_workers=32,
+                                batch_size=args.test_batch_size, shuffle=False, drop_last=False)
+        output_channels = 40    
+    elif args.dataset == 'scanobjectnn':
+        test_loader = DataLoader(ScanObjectNN(partition='test', num_points=args.num_points, bg=args.bg), num_workers=32,
+                                batch_size=args.test_batch_size, shuffle=False, drop_last=False)
+        output_channels = 15                      
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -162,7 +187,7 @@ if __name__ == "__main__":
     parser.add_argument('--exp_name', type=str, default='exp', metavar='N',
                         help='Name of the experiment')
     parser.add_argument('--dataset', type=str, default='modelnet40', metavar='N',
-                        choices=['modelnet40', 'modelnet40C'])
+                        choices=['modelnet40', 'modelnet40C', 'modelnet40noise', 'modelnet40resplit', 'scanobjectnn'])
     parser.add_argument('--batch_size', type=int, default=32, metavar='batch_size',
                         help='Size of batch)')
     parser.add_argument('--test_batch_size', type=int, default=16, metavar='batch_size',
@@ -193,6 +218,11 @@ if __name__ == "__main__":
                         help='corruption of ModelNetC')   
     parser.add_argument('--severity', type=int, default=1, metavar='S',
                         help='severity of ModelNetC')
+    parser.add_argument('--num_noise', type=int, default=100,
+                        help='number of noise points in noise study')
+    parser.add_argument('--bg', type=bool, default=False,
+                        help='whether to add background in scanobjectnn')
+
                   
     args = parser.parse_args()
 

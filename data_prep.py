@@ -1,5 +1,60 @@
 import os
 import argparse
+import numpy as np
+from collections import defaultdict 
+
+def split_Toronto3D(idx, n=8192, block_size=5, data_dir='./data'):
+        import open3d.ml.torch as ml3d
+        assert idx in [1,2,3,4] 
+        if idx in [1,3,4]:
+                head = "train"
+        elif idx == 2:
+                head = "test"
+        data_dir = os.path.join(data_dir, "Toronto_3D")
+        # construct a dataset by specifying dataset_path
+        dataset = ml3d.datasets.Toronto3D(dataset_path=data_dir)
+
+        # get the 'all' split that combines training, validation and test set
+        all_split = dataset.get_split('all')
+
+        # print the shape of the first point cloud
+        pointcloud = all_split.get_data(idx)
+        
+        pc = pointcloud['point']
+        label = pointcloud['label']
+        
+        if not os.path.exists(os.path.join(data_dir, head)):
+                os.mkdir(os.path.join(data_dir, head))
+
+        mask = np.any(np.isnan(pc), axis=1)
+
+        pc = pc[~mask]
+
+        pc_dict = defaultdict(list)
+        label_dict = defaultdict(list)
+
+        point_num = pc.shape[0]
+        assert label.shape[0] == point_num
+
+        print('There are %d points in the cloud'%point_num)
+
+        for i in range(point_num):
+                p = pc[i,:]
+                x, y = p[0]//block_size, p[1]//block_size
+                pc_dict['%d%d'%(x,y)].append(p)
+                label_dict['%d%d'%(x,y)].append(label[i])
+                print("Processing %.2f%% points in Region %d"%(i/point_num*100, idx))
+        
+        for k in pc_dict.keys():
+                pc = np.array(pc_dict[k])
+                label = np.array(label_dict[k])
+                if pc.shape[0] >= n:
+                        ind = np.arange(0, pc.shape[0], 1, np.int32)
+                        np.random.shuffle(ind)
+                        pc = pc[ind[:n], :]
+                        label = label[ind[:n]]
+                        np.save(os.path.join(data_dir, head, 'L%d_%s_point.npy'%(idx, k)), pc)
+                        np.save(os.path.join(data_dir, head, 'L%d_%s_label.npy'%(idx, k)), label)  
 
 def make_folder(data_folder):
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,6 +81,12 @@ def download_modenet40C(data_dir):
     pass
         
     print('ModelNet40-C dataset has been prepared.')    
+
+def download_toronto3d(data_dir):
+    for i in range(1, 5):
+        split_Toronto3D(i, data_dir=data_dir)
+        
+    print('Toronto3D dataset has been prepared.')   
         
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Data Preparation')
