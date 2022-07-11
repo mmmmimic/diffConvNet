@@ -194,8 +194,6 @@ if __name__ == "__main__":
                         help='Size of batch)')
     parser.add_argument('--epochs', type=int, default=2000, metavar='N',
                         help='number of episode to train')
-    parser.add_argument('--use_sgd', type=bool, default=True,
-                        help='Use SGD')
     parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                         help='learning rate (default: 0.001, 0.1 if using sgd)')
     parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
@@ -222,7 +220,6 @@ if __name__ == "__main__":
                         help='number of noise points in noise study')
     parser.add_argument('--bg', type=bool, default=False,
                         help='whether to add background in scanobjectnn')
-
                   
     args = parser.parse_args()
 

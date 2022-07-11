@@ -16,7 +16,7 @@ class Model(nn.Module):
         self.le0 = Conv1x1(3, init_channel)
 
         self.le1 = PointnetSAModule(
-                    npoint=2048,
+                    npoint=args.num_points,
                     radius=0.05,
                     nsample=20,
                     mlp=[init_channel, init_channel, init_channel],
@@ -91,8 +91,6 @@ if __name__ == "__main__":
                         help='dropout rate')
     parser.add_argument('--radius', type=float, default=0.005,
                         help='search radius')
-    parser.add_argument('--emb_dims', type=int, default=512, metavar='N',
-                        help='Dimension of embeddings')
     args = parser.parse_args()
     
     device = "cuda" if torch.cuda.is_available() else "cpu"

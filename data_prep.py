@@ -73,25 +73,26 @@ def download_modelnet40(data_dir):
         
     print('ModelNet40 dataset has been prepared.')
 
-def download_modenet40C(data_dir):
-    '''
-    Please follow the data preparation instruction at https://github.com/jiachens/ModelNet40-C
-    Then move ./ModelNet40-C/data/modelnet40_c to ./data/modelnet40_c
-    '''
-    pass
-        
-    print('ModelNet40-C dataset has been prepared.')    
-
 def download_toronto3d(data_dir):
     for i in range(1, 5):
         split_Toronto3D(i, data_dir=data_dir)
         
     print('Toronto3D dataset has been prepared.')   
-        
+
+def download_shapenetpart(data_dir):
+    if not os.path.exists(os.path.join(data_dir, 'shapenet_part_seg_hdf5_data')):
+        www = 'https://shapenet.cs.stanford.edu/media/shapenet_part_seg_hdf5_data.zip'
+        zipfile = os.path.basename(www)
+        os.system('wget %s --no-check-certificate; unzip %s' % (www, zipfile))
+        os.system('mv %s %s' % ('hdf5_data', os.path.join(data_dir, 'shapenet_part_seg_hdf5_data')))
+        os.system('rm %s' % (zipfile))
+            
+    print('ShapeNetPart dataset has been prepared.')  
+    
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Data Preparation')
     parser.add_argument('--dataset', type=str, default='modelnet40', metavar='N',
-                        choices=['modelnet40', 'toronto3d', 'modelnet40c'])   
+                        choices=['modelnet40', 'toronto3d', 'shapenetpart'])   
     parser.add_argument('--data_folder', type=str, default='data')                  
     args = parser.parse_args()
     

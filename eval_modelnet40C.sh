@@ -7,4 +7,4 @@ CUDA_VISIBLE_DEVICES=0 python3 main_cls.py --eval=True --model_path=checkpoints/
 done
 done
 
-python3 fetch_cer.py
+python3 compute_cer.py

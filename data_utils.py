@@ -15,6 +15,7 @@ import h5py
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+from models.utils import get_dist
 
 def load_data_mdn(partition):
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -56,6 +57,33 @@ def load_data_seg(partition):
     all_label = glob.glob(label_dir)
     
     return all_data, all_label
+
+
+def load_data_partseg(partition):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(base_dir, 'data')
+    all_data = []
+    all_label = []
+    all_seg = []
+    if partition == 'trainval':
+        file = glob.glob(os.path.join(data_dir, 'shapenet_part_seg_hdf5_data', '*train*.h5')) \
+               + glob.glob(os.path.join(data_dir, 'shapenet_part_seg_hdf5_data', '*val*.h5'))   
+    else:
+        file = glob.glob(os.path.join(data_dir, 'shapenet_part_seg_hdf5_data', '*%s*.h5'%partition))
+    for h5_name in file:
+        f = h5py.File(h5_name, 'r+')
+        data = f['data'][:].astype('float32')
+        label = f['label'][:].astype('int64')
+        seg = f['pid'][:].astype('int64')
+        f.close()
+        all_data.append(data)
+        all_label.append(label)
+        all_seg.append(seg)
+    all_data = np.concatenate(all_data, axis=0)
+    all_label = np.concatenate(all_label, axis=0)
+    all_seg = np.concatenate(all_seg, axis=0)
+    return all_data, all_label, all_seg
+
 
 def translate_pointcloud(pointcloud):
     xyz1 = np.random.uniform(low=2./3., high=3./2., size=[3])
@@ -217,3 +245,73 @@ class Toronto3D(Dataset):
 
     def __len__(self):
         return len(self.data)  
+    
+class ShapeNetPart(Dataset):
+    def __init__(self, num_points, partition='train'):
+        self.data, self.label, self.seg = load_data_partseg(partition)
+        self.seg_num = [4, 2, 2, 4, 4, 3, 3, 2, 4, 2, 6, 2, 3, 3, 3, 3]
+        self.index_start = [0, 4, 6, 8, 12, 16, 19, 22, 24, 28, 30, 36, 38, 41, 44, 47]
+        self.num_points = num_points
+        self.partition = partition    
+        self.seg_num_all = 50
+        self.seg_start_index = 0    
+            
+    def __getitem__(self, item):
+        pointcloud = self.data[item][:self.num_points]
+        label = self.label[item]
+        seg = self.seg[item][:self.num_points]
+        
+        if self.partition == 'trainval':
+            pointcloud = translate_pointcloud(pointcloud)
+            indices = list(range(pointcloud.shape[0]))
+            np.random.shuffle(indices)
+            pointcloud = pointcloud[indices]
+            seg = seg[indices]
+            
+        return pointcloud, label, seg
+
+    def __len__(self):
+        return self.data.shape[0]
+
+
+class ShapeNetPartNoise(Dataset):
+    def __init__(self, num_points, num_noise, partition='test'):
+        assert partition == "test",'Noise study can only be applied during evaluation'
+        self.data, self.label, self.seg = load_data_partseg(partition)
+        self.seg_num = [4, 2, 2, 4, 4, 3, 3, 2, 4, 2, 6, 2, 3, 3, 3, 3]
+        self.index_start = [0, 4, 6, 8, 12, 16, 19, 22, 24, 28, 30, 36, 38, 41, 44, 47]
+        self.seg_num_all = 50
+        self.seg_start_index = 0
+        self.num_points = num_points
+        self.num_noise =   num_noise
+        assert self.num_noise <= self.num_points,'number of noise points should be less than the point number'
+
+    def __getitem__(self, item):
+        pointcloud = self.data[item][:self.num_points]
+        label = self.label[item]
+        seg = self.seg[item][:self.num_points]
+        
+        noise = np.random.rand(self.num_noise, 3)*2-1
+            
+        dist = get_dist(torch.from_numpy(noise.astype('float32')).cuda().unsqueeze(0), 
+                            torch.from_numpy(pointcloud.astype('float32')).cuda().unsqueeze(0))
+            
+        noise_idx = torch.min(dist, dim=-1)[1].squeeze(0).cpu().numpy()
+        noise_seg = seg[noise_idx]
+            
+        pointcloud = pointcloud[:-self.num_noise, :]
+        seg = seg[:-self.num_noise]    
+            
+        pointcloud = np.concatenate((pointcloud, noise), axis=0).astype('float32')
+        seg = np.concatenate((seg, noise_seg), axis=0)
+            
+        indices = list(range(pointcloud.shape[0]))
+        np.random.shuffle(indices)
+            
+        pointcloud = pointcloud[indices]
+        seg = seg[indices]
+            
+        return pointcloud, label, seg
+
+    def __len__(self):
+        return self.data.shape[0]

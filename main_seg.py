@@ -38,7 +38,7 @@ def calculate_sem_IoU(pred_np, seg_np):
     U_all = U_all[1:]
     return I_all / U_all 
 
-def calculate_class_IoU(pred_np, seg_np, visual=False):
+def calculate_class_IoU(pred_np, seg_np):
     '''
     return iou for each category
     '''
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     parser.add_argument('--radius', type=float, default=0.005,
                         help='searching radius')
     parser.add_argument('--model_path', type=str, default='', metavar='N',
-                        help='Pretrainsed model path')
+                        help='Pretrained model path')
     args = parser.parse_args()
 
     io = IOStream(os.path.join('./logs', args.exp_name))
