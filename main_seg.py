@@ -139,7 +139,6 @@ def train(args, io):
             with torch.no_grad():
                 seg_pred = model(data)
             seg_pred = seg_pred.permute(0, 2, 1).contiguous()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 2)
             loss = criterion(seg_pred.view(-1, 9), seg.view(-1,1).squeeze())
             pred = seg_pred.argmax(dim=2)
             count += batch_size
