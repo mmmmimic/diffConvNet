@@ -70,7 +70,7 @@ set `--bg` to `True` to train the model on the pointcloud with backgrounds.
 Same as ModelNet40. 
 
 ## 3D Scene Segmentation
-**NB: Please be aware that there could be an error on the Toronto3D segmentation, as reported in issues, causing the model to show constant (and anormal) IoU during training. I failed to reproduce the error when I ran the code from scratch, and thus not able to debug it. I am really sorry for this. My best guess is that this bug could be fixed by importing the anaconda environment from environment.yaml. **
+**NB: Please be aware that there could be an error on the Toronto3D segmentation, as reported in issues, causing the model to show constant (and anormal) IoU during training. I failed to reproduce the error when I ran the code from scratch, and thus not able to debug it. I am really sorry for this. My best guess is that this bug could be fixed by importing the anaconda environment from environment.yaml.**
 
 ### Toronto3D
 **Prepare dataset (may require torch 1.8.x)**
