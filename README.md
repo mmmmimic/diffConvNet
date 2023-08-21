@@ -3,6 +3,9 @@ Standard spatial convolutions assume input data with a regular neighborhood stru
 
 [[Arxiv]](https://arxiv.org/abs/2111.14658)   [[ECCV]](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136630375.pdf)
 
+![Alt text](assets/teaser.png)
+
+
 ## Dependencies
  - Python (tested on 3.7.11)
  - PyTorch (tested on 1.9.0)
@@ -67,7 +70,7 @@ set `--bg` to `True` to train the model on the pointcloud with backgrounds.
 Same as ModelNet40. 
 
 ## 3D Scene Segmentation
-**NB: Please be aware that there could be an error on the Toronto3D segmentation, as reported in issues, causing the model to show constant IoU during training. I failed to reproduce the error when I ran the code from scratch, and thus not able to debug it. I am really sorry for this.**
+**NB: Please be aware that there could be an error on the Toronto3D segmentation, as reported in issues, causing the model to show constant (and anormal) IoU during training. I failed to reproduce the error when I ran the code from scratch, and thus not able to debug it. I am really sorry for this. My best guess is that this bug could be fixed by importing the anaconda environment from environment.yaml. **
 
 ### Toronto3D
 **Prepare dataset (may require torch 1.8.x)**
